@@ -179,23 +179,25 @@ def search(userid,username,password,url,name):
 
     # Modify the conditions to exclude empty strings
     if userid and userid != '*':
-        query += " AND userid = ?"
+        query += " AND userid = %s"
         query_params.append(userid)
     if username and username != '*':
-        query += " AND username = ?"
+        query += " AND username = %s"
         query_params.append(username)
     if password and password != '*':
-        query += " AND password = ?"
+        query += " AND password = %s"
         query_params.append(password)
     if url and url != '*':
-        query += " AND url = ?"
+        query += " AND url = %s"
         query_params.append(url)
     if name and name != '*':
-        query += " AND name = ?"
+        query += " AND app_name = %s"
         query_params.append(name)
+
        
     cursor.execute(query, query_params)
-
+    results = cursor.fetchall()
+    
     #dis-connect from the database
     db.close()
     
