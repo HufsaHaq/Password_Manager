@@ -39,6 +39,7 @@ class AdminWindow(Frame):
     def client_exit(self):
         exit()
 
+##################################################################################################################################################################################
 
     def show_login(self):
 
@@ -84,11 +85,10 @@ class AdminWindow(Frame):
 
         
     def login(self):
-        
         myname = self.usernameTextBox.get()
         mypassword = self.password1TextBox.get()
 
-        #this uses code from password_database
+        # this uses code from password_database
         results = userlogin(myname, mypassword)
 
         if results[0] == "Error":
@@ -97,94 +97,171 @@ class AdminWindow(Frame):
             else:
                 messagebox.showerror("Error", "Password incorrect")
         else:
-            messagebox.showinfo("Information","Logged in " + myname)
-            self.show_menu(results[0])
+            messagebox.showinfo("Information", "Logged in " + myname)
+            self.show_menu(results[1])  # Pass the 'userid' to show_menu
 
 
-    def show_menu(self,userid):
-           
-        # clear the widow of any previous widgets
+##################################################################################################################################################################################
+
+    def show_menu(self, userid):
+        # clear the window of any previous widgets
         self.clear_window()
 
         # row 1
-        self.label = Label(self,text="Menu...", font=("Arial Narrow",24))
-        self.label.grid(row=1, column = 1, columnspan = 4, rowspan = 1, padx=10, pady=10, sticky=W)
+        self.label = Label(self, text="Menu...", font=("Arial Narrow", 24))
+        self.label.grid(row=1, column=1, columnspan=4, rowspan=1, padx=10, pady=10, sticky=W)
 
         # row 2
-        self.new_passwordButton = Button(self,text='Create new password',command=self.new_password,width=20)
-        self.new_passwordButton.grid(row=2, column = 3, columnspan = 1, rowspan = 1, padx=10, pady=10)
+        self.new_credentialsButton = Button(self, text='Create new credentials', command=lambda: self.show_new_credentials(userid), width=20)
+        self.new_credentialsButton.grid(row=2, column=3, columnspan=1, rowspan=1, padx=10, pady=10)
 
         # row 3
-        self.searchButton = Button(self,text='Find a password',command=self.search,width=20)
-        self.searchButton.grid(row=3, column = 3, columnspan = 1, rowspan = 1, padx=10, pady=10)
-        
-        self.show_allButton = Button(self,text='Show all',command=self.show_all,width=24)
-        self.show_allButton.grid(row=4, column = 3, columnspan = 1, rowspan = 1, padx=10, pady=10)
-        
-        # buttons at bottom of window
-        self.logoutButton = Button(self,text='Log out',command=self.show_login,width=20)
-        self.logoutButton.grid(row=20, column = 1, columnspan = 1, rowspan = 1, padx=10, pady=10)
+        self.searchButton = Button(self, text='Search', command=lambda: self.show_search(userid), width=20)
+        self.searchButton.grid(row=3, column=3, columnspan=1, rowspan=1, padx=10, pady=10)
 
-    def show_new_password(self):
-        # clear the widow of any previous widgets
+        # buttons at bottom of window
+        self.logoutButton = Button(self, text='Log out', command=self.show_login, width=20)
+        self.logoutButton.grid(row=20, column=1, columnspan=1, rowspan=1, padx=10, pady=10)
+
+##################################################################################################################################################################################
+
+    def show_new_credentials(self, userid):
+        # clear the window of any previous widgets
         self.clear_window()
 
         # row 1
-        self.label = Label(self,text="Create Login Credentials...", font=("Arial Narrow",24))
-        self.label.grid(row=1, column = 1, columnspan = 4, rowspan = 1, padx=10, pady=10, sticky=W)
+        self.label = Label(self, text="Create Login Credentials...", font=("Arial Narrow", 24))
+        self.label.grid(row=1, column=1, columnspan=4, rowspan=1, padx=10, pady=10, sticky=W)
 
-        # row 2 
-        
-        self.usernameLabel = Label(self, text="Username ", font=("Arial Narrow",16))
-        self.usernameLabel.grid(row=2, column = 1, columnspan = 1, rowspan = 1, padx=10, pady=10)
-        self.usernameTextBox = Entry(self,width=50)
-        self.usernameTextBox.grid(row=2, column = 2, columnspan = 4, rowspan = 1, padx=10, pady=10, sticky="w")
-        self.usernameTextBox.bind("<Tab>", self.focus_next_window)
-        self.usernameTextBox.focus()
+        # row 2
+        self.username1Label = Label(self, text="Username ", font=("Arial Narrow", 16))
+        self.username1Label.grid(row=2, column=1, columnspan=1, rowspan=1, padx=10, pady=10)
+        self.username1TextBox = Entry(self, width=50)
+        self.username1TextBox.grid(row=2, column=2, columnspan=4, rowspan=1, padx=10, pady=10, sticky="w")
+        self.username1TextBox.bind("<Tab>", self.focus_next_window)
+        self.username1TextBox.focus()
 
-        # work around for foriegn characaters
-        self.usernameTextBox.bind("<Control-n>", lambda event: self.usernameTextBox.insert(999,"ñ"))
-        self.usernameTextBox.bind("<Control-Shift-N>", lambda event: self.usernameTextBox.insert(999,"Ñ"))
-        self.usernameTextBox.bind("<Control-u>", lambda event: self.usernameTextBox.insert(999,"ü"))
-        self.usernameTextBox.bind("<Control-Shift-U>", lambda event: self.usernameTextBox.insert(999,"Ü"))
-        
-        # row3
-        self.password2Label = Label(self, text="Password", font=("Arial Narrow",16))
-        self.password2Label.grid(row=3, column = 1, columnspan = 1, rowspan = 1, padx=10, pady=10)       
-        self.password2TextBox = Entry(self,show="*",width=50)
-        self.password2TextBox.grid(row=3, column = 2, columnspan = 4, rowspan = 1, padx=10, pady=10, sticky="w")
+        # work around for foreign characters
+        self.username1TextBox.bind("<Control-n>", lambda event: self.username1TextBox.insert(999, "ñ"))
+        self.username1TextBox.bind("<Control-Shift-N>", lambda event: self.username1TextBox.insert(999, "Ñ"))
+        self.username1TextBox.bind("<Control-u>", lambda event: self.username1TextBox.insert(999, "ü"))
+        self.username1TextBox.bind("<Control-Shift-U>", lambda event: self.username1TextBox.insert(999, "Ü"))
+
+        # row 3
+        self.password2Label = Label(self, text="Password", font=("Arial Narrow", 16))
+        self.password2Label.grid(row=3, column=1, columnspan=1, rowspan=1, padx=10, pady=10)
+        self.password2TextBox = Entry(self, show="*", width=50)
+        self.password2TextBox.grid(row=3, column=2, columnspan=4, rowspan=1, padx=10, pady=10, sticky="w")
         self.password2TextBox.bind("<Tab>", self.focus_next_window)
         self.password2TextBox.focus()
 
-        # row4
-        self.urlLabel = Label(self, text="URL", font=("Arial Narrow",16))
-        self.urlLabel.grid(row=4, column = 1, columnspan = 1, rowspan = 1, padx=10, pady=10)       
-        self.urlTextBox = Entry(self,width=50)
-        self.urlTextBox.grid(row=4, column = 2, columnspan = 4, rowspan = 1, padx=10, pady=10, sticky="w")
+        # row 4
+        self.urlLabel = Label(self, text="URL", font=("Arial Narrow", 16))
+        self.urlLabel.grid(row=4, column=1, columnspan=1, rowspan=1, padx=10, pady=10)
+        self.urlTextBox = Entry(self, width=50)
+        self.urlTextBox.grid(row=4, column=2, columnspan=4, rowspan=1, padx=10, pady=10, sticky="w")
         self.urlTextBox.bind("<Tab>", self.focus_next_window)
         self.urlTextBox.focus()
 
-        # row5
-        self.nameLabel = Label(self, text="App / Website name", font=("Arial Narrow",16))
-        self.nameLabel.grid(row=5, column = 1, columnspan = 1, rowspan = 1, padx=10, pady=10)       
-        self.nameTextBox = Entry(self,width=50)
-        self.nameTextBox.grid(row=5, column = 2, columnspan = 4, rowspan = 1, padx=10, pady=10, sticky="w")
+        # row 5
+        self.nameLabel = Label(self, text="App / Website name", font=("Arial Narrow", 16))
+        self.nameLabel.grid(row=5, column=1, columnspan=1, rowspan=1, padx=10, pady=10)
+        self.nameTextBox = Entry(self, width=50)
+        self.nameTextBox.grid(row=5, column=2, columnspan=4, rowspan=1, padx=10, pady=10, sticky="w")
         self.nameTextBox.bind("<Tab>", self.focus_next_window)
         self.nameTextBox.focus()
 
-        create_password(username,password,url,name)
+        # row 6
+        self.createButton = Button(self, text='Create', command=lambda: self.new_credentials(userid), width=20)
+        self.createButton.grid(row=6, column=1, columnspan=1, rowspan=1, padx=10, pady=10)
+
+        self.backButton = Button(self, text='Back To Menu', command=lambda: self.show_menu(userid), width=20)
+        self.backButton.grid(row=6, column=4, columnspan=1, rowspan=1, padx=10, pady=10)
+
+            
+    def new_credentials(self, userid):
+        username = self.username1TextBox.get()
+        password = self.password2TextBox.get()
+        url = self.urlTextBox.get()
+        name = self.nameTextBox.get()
+
+        # this uses code from password_database
+        create_password(userid, username, password, url, name)
 
 
-    def search(self):
-        # clear the widow of any previous widgets
-        self.clear_window()
-
-    def show_all(self):
-        # clear the widow of any previous widgets
-        self.clear_window()
         
-###############################################
-###############################################
+##################################################################################################################################################################################
+    def show_search(self, userid):
+        # clear the window of any previous widgets
+        self.clear_window()
+
+        # row 1
+        self.label = Label(self, text="Search...", font=("Arial Narrow", 24))
+        self.label.grid(row=1, column=1, columnspan=4, rowspan=1, padx=10, pady=10, sticky=W)
+
+        # row 2
+        self.usernamexLabel = Label(self, text="Username ", font=("Arial Narrow", 16))
+        self.usernamexLabel.grid(row=2, column=1, columnspan=1, rowspan=1, padx=10, pady=10)
+        self.usernamexTextBox = Entry(self, width=50)
+        self.usernamexTextBox.grid(row=2, column=2, columnspan=4, rowspan=1, padx=10, pady=10, sticky="w")
+        self.usernamexTextBox.bind("<Tab>", self.focus_next_window)
+        self.usernamexTextBox.focus()
+
+        # work around for foreign characters
+        self.usernamexTextBox.bind("<Control-n>", lambda event: self.usernamexTextBox.insert(999, "ñ"))
+        self.usernamexTextBox.bind("<Control-Shift-N>", lambda event: self.usernamexTextBox.insert(999, "Ñ"))
+        self.usernamexTextBox.bind("<Control-u>", lambda event: self.usernamexTextBox.insert(999, "ü"))
+        self.usernamexTextBox.bind("<Control-Shift-U>", lambda event: self.usernamexTextBox.insert(999, "Ü"))
+
+        # row 3
+        self.passwordxLabel = Label(self, text="Password", font=("Arial Narrow", 16))
+        self.passwordxLabel.grid(row=3, column=1, columnspan=1, rowspan=1, padx=10, pady=10)
+        self.passwordxTextBox = Entry(self, show="*", width=50)
+        self.passwordxTextBox.grid(row=3, column=2, columnspan=4, rowspan=1, padx=10, pady=10, sticky="w")
+        self.passwordxTextBox.bind("<Tab>", self.focus_next_window)
+        self.passwordxTextBox.focus()
+
+        # row 4
+        self.urlxLabel = Label(self, text="URL", font=("Arial Narrow", 16))
+        self.urlxLabel.grid(row=4, column=1, columnspan=1, rowspan=1, padx=10, pady=10)
+        self.urlxTextBox = Entry(self, width=50)
+        self.urlxTextBox.grid(row=4, column=2, columnspan=4, rowspan=1, padx=10, pady=10, sticky="w")
+        self.urlxTextBox.bind("<Tab>", self.focus_next_window)
+        self.urlxTextBox.focus()
+
+        # row 5
+        self.namexLabel = Label(self, text="App / Website name", font=("Arial Narrow", 16))
+        self.namexLabel.grid(row=5, column=1, columnspan=1, rowspan=1, padx=10, pady=10)
+        self.namexTextBox = Entry(self, width=50)
+        self.namexTextBox.grid(row=5, column=2, columnspan=4, rowspan=1, padx=10, pady=10, sticky="w")
+        self.namexTextBox.bind("<Tab>", self.focus_next_window)
+        self.namexTextBox.focus()
+
+        # row 6
+        self.searchButton = Button(self, text='Search', command=lambda: self.search(userid), width=20)
+        self.searchButton.grid(row=6, column=1, columnspan=1, rowspan=1, padx=10, pady=10)
+
+        self.backButton = Button(self, text='Back To Menu', command=lambda: self.show_menu(userid), width=20)
+        self.backButton.grid(row=6, column=4, columnspan=1, rowspan=1, padx=10, pady=10)
+           
+    def search(self, userid):
+        username = self.usernamexTextBox.get()
+        password = self.passwordxTextBox.get()
+        url = self.urlxTextBox.get()
+        name = self.namexTextBox.get()
+
+        # this uses code from password_database
+        results = search(userid, username, password, url, name)
+    
+        if results:
+            for result in results:
+                print(result)  # Handle or display the results as needed
+        else:
+            messagebox.showinfo("Information", "No records found")
+
+        
+##################################################################################################################################################################################
+
 # MAIN PROGRAM
 if __name__ == "__main__":
 
