@@ -134,20 +134,20 @@ def userlogin(username, password):
     cursor = db.cursor()
 
     mycommand = 'SELECT * FROM table_users WHERE sys_username = %s'
-    cursor.execute(mycommand,(username,))
+    cursor.execute(mycommand, (username,))
     results = cursor.fetchall()
 
-    #dis-connect from the database
+    # dis-connect from the database
     db.close()
 
-    if results == []:
+    if not results:
         return ["Error", "Username not found"]
     elif results[0][2] != password:
         return ["Error", "Password incorrect"]
     else:
-        return ["Logged in", username]
+        return ["Success", results[0][0]]  # Return 'Success' and the 'userid'
 
-def create_password(username,password,url,name):
+def create_password(userid,username,password,url,name):
     # connect to the database
     db = psycopg2.connect(
             dbname=DB_NAME,
@@ -158,18 +158,54 @@ def create_password(username,password,url,name):
         )
     cursor = db.cursor()
     mycommand = 'INSERT INTO accounts (userID,username,password, url, app_name) VALUES(%s,%s,%s,%s,%s)'
-    cursor.execute(mycommand,(username,password,url,name,))
+    cursor.execute(mycommand,(userid,username,password,url,name,))
 
     #dis-connect from the database
     db.close()
+    
+def search(userid,username,password,url,name):
+    # connect to the database
+    db = psycopg2.connect(
+            dbname=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT
+        )
+    cursor = db.cursor()
+    query = "SELECT * FROM accounts WHERE 1 = 1 "
 
+    query_params = []
+
+    # Modify the conditions to exclude empty strings
+    if userid and userid != '*':
+        query += " AND userid = ?"
+        query_params.append(userid)
+    if username and username != '*':
+        query += " AND username = ?"
+        query_params.append(username)
+    if password and password != '*':
+        query += " AND password = ?"
+        query_params.append(password)
+    if url and url != '*':
+        query += " AND url = ?"
+        query_params.append(url)
+    if name and name != '*':
+        query += " AND name = ?"
+        query_params.append(name)
+       
+    cursor.execute(query, query_params)
+
+    #dis-connect from the database
+    db.close()
+    
 if __name__ == '__main__':
     # Call the function to delete the database
-    delete_database()
+    #delete_database()
     
     # Call the function to create the database and tables
-    create_database()
-    populatedatabase()
+    #create_database()
+    #populatedatabase()
 
     # Call the function to display contents of the database
     show_all()
