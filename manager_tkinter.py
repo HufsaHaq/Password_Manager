@@ -185,9 +185,15 @@ class AdminWindow(Frame):
         url = self.urlTextBox.get()
         name = self.nameTextBox.get()
 
-        # this uses code from password_database
-        create_password(userid, username, password, url, name)
+        # Print values for debugging
+        print(f"Username: {username}, Password: {password}, URL: {url}, Name: {name}")
 
+        try:
+            # this uses code from password_database
+            create_password(userid, username, password, url, name)
+            messagebox.showinfo("Created", "Program executed")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to create credentials: {e}")
 
         
 ##################################################################################################################################################################################
@@ -254,11 +260,19 @@ class AdminWindow(Frame):
         results = search(userid, username, password, url, name)
     
         if results:
-            for result in results:
-                print(result)  # Handle or display the results as needed
+            show_results(results)
         else:
             messagebox.showinfo("Information", "No records found")
-
+    
+    def show_results(self, results):
+        for i in range(len(results)):
+            for j in range(len(results[0])):
+                 
+                self.e = Entry(root, width=20, fg='blue',
+                               font=('Arial',16,'bold'))
+                 
+                self.e.grid(row=i, column=j)
+                self.e.insert(END, results[i][j])
         
 ##################################################################################################################################################################################
 
