@@ -147,21 +147,25 @@ def userlogin(username, password):
     else:
         return ["Success", results[0][0]]  # Return 'Success' and the 'userid'
 
-def create_password(userid,username,password,url,name):
+def create_password(userid, username, password, url, name):
     # connect to the database
     db = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            host=DB_HOST,
-            port=DB_PORT
-        )
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        host=DB_HOST,
+        port=DB_PORT
+    )
     cursor = db.cursor()
-    mycommand = 'INSERT INTO accounts (userID,username,password, url, app_name) VALUES(%s,%s,%s,%s,%s)'
-    cursor.execute(mycommand,(userid,username,password,url,name,))
+    mycommand = 'INSERT INTO accounts (userID, username, password, url, app_name) VALUES(%s, %s, %s, %s, %s)'
+    cursor.execute(mycommand, (userid, username, password, url, name))
 
-    #dis-connect from the database
+    # save the changes to the database
+    db.commit()
+    
+    # dis-connect from the database
     db.close()
+
     
 def search(userid,username,password,url,name):
     # connect to the database
