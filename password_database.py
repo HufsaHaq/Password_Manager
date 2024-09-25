@@ -1,20 +1,10 @@
-import psycopg2
+import sqlite3
 
 DB_NAME = 'password_database'
-DB_USER = 'postgres'
-DB_PASSWORD = 'password'
-DB_HOST = 'localhost'
-DB_PORT = '5432'
 
 def delete_database():
     # connect to the database
-    db = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            host=DB_HOST,
-            port=DB_PORT
-        )
+    db = sqlite3.connect(DB_NAME)
     cursor = db.cursor()
 
     cursor.execute('''DROP TABLE IF EXISTS accounts;''')
@@ -30,39 +20,34 @@ def delete_database():
 def create_database():
     try:
         # connect to the database
-        db = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            host=DB_HOST,
-            port=DB_PORT
-        )
+        db = sqlite3.connect(DB_NAME)
         cursor = db.cursor()
 
         # Create the accounts table
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS accounts (
-            userID SERIAL,
+            userID INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL,
             password TEXT NOT NULL, 
             url TEXT NOT NULL, 
             app_name TEXT NOT NULL
         );''')
 
-        #create user table
+        # Create the table_users table (fixed the issue with duplicate PRIMARY KEY)
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS table_users(
-        userID SERIAL PRIMARY KEY,
-        sys_username VARCHAR(20) NOT NULL,
-        sys_password VARCHAR(20) NOT NULL);
+            userID INTEGER PRIMARY KEY AUTOINCREMENT,
+            sys_username VARCHAR(20) NOT NULL,
+            sys_password VARCHAR(20) NOT NULL
+        );
         ''')
-    
+
         # Save changes and close the database
         db.commit()
         db.close()
 
         print("Database created successfully")
-    except psycopg2.Error as e:
+    except Exception as e:
         print("Error:", e)
 
 def populatedatabase():
@@ -70,13 +55,7 @@ def populatedatabase():
     print("Running populatedatabase")
 
     # connect to the database
-    db = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            host=DB_HOST,
-            port=DB_PORT
-        )
+    db = sqlite3.connect(DB_NAME)
     cursor = db.cursor()
 
     #populate the users table (this will not be necessary in a fully functioning system where there functionality to add users)
@@ -99,13 +78,7 @@ def populatedatabase():
       
 def show_all():
     # connect to the database
-    db = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            host=DB_HOST,
-            port=DB_PORT
-        )
+    db = sqlite3.connect(DB_NAME)
     cursor = db.cursor()
     
     # show the entries in the accounts table
@@ -124,16 +97,10 @@ def show_all():
 
 def userlogin(username, password):
     # connect to the database
-    db = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            host=DB_HOST,
-            port=DB_PORT
-        )
+    db = sqlite3.connect(DB_NAME)
     cursor = db.cursor()
 
-    mycommand = 'SELECT * FROM table_users WHERE sys_username = %s'
+    mycommand = 'SELECT * FROM table_users WHERE sys_username = ?'
     cursor.execute(mycommand, (username,))
     results = cursor.fetchall()
 
@@ -149,15 +116,10 @@ def userlogin(username, password):
 
 def create_password(userid, username, password, url, name):
     # connect to the database
-    db = psycopg2.connect(
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        host=DB_HOST,
-        port=DB_PORT
-    )
+    db = sqlite3.connect(DB_NAME)
     cursor = db.cursor()
-    mycommand = 'INSERT INTO accounts (userID, username, password, url, app_name) VALUES(%s, %s, %s, %s, %s)'
+
+    mycommand = 'INSERT INTO accounts (userID, username, password, url, app_name) VALUES(?, ?, ?, ?, ?)'
     cursor.execute(mycommand, (userid, username, password, url, name))
 
     # save the changes to the database
@@ -169,33 +131,28 @@ def create_password(userid, username, password, url, name):
     
 def search(userid,username,password,url,name):
     # connect to the database
-    db = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            host=DB_HOST,
-            port=DB_PORT
-        )
+    db = sqlite3.connect(DB_NAME)
     cursor = db.cursor()
+
     query = "SELECT * FROM accounts WHERE 1 = 1 "
 
     query_params = []
 
     # Modify the conditions to exclude empty strings
     if userid and userid != '*':
-        query += " AND userid = %s"
+        query += " AND userid = ?"
         query_params.append(userid)
     if username and username != '*':
-        query += " AND username = %s"
+        query += " AND username = ?"
         query_params.append(username)
     if password and password != '*':
-        query += " AND password = %s"
+        query += " AND password = ?"
         query_params.append(password)
     if url and url != '*':
-        query += " AND url = %s"
+        query += " AND url = ?"
         query_params.append(url)
     if name and name != '*':
-        query += " AND app_name = %s"
+        query += " AND app_name = ?"
         query_params.append(name)
 
        
@@ -206,12 +163,11 @@ def search(userid,username,password,url,name):
     db.close()
     
 if __name__ == '__main__':
-    # Call the function to delete the database
-    #delete_database()
-    
-    # Call the function to create the database and tables
-    #create_database()
-    #populatedatabase()
+    # Ensure the database is created
+    delete_database()
+    create_database()  # Create the tables if they don't exist
+    populatedatabase()  # Populate the tables with initial data
 
     # Call the function to display contents of the database
     show_all()
+
