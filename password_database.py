@@ -116,11 +116,11 @@ def userlogin(username, password):
     # Hash the input password before comparison
     hashed_password = sha256(password.encode()).hexdigest()
 
-    # Check if the stored hashed password matches the input hashed password
-    if results[0][2] != hashed_password:
+    # Compare the stored password (at index 0) with the hashed input password
+    if results[0][0] != hashed_password:
         return ["Error", "Password incorrect"]
     else:
-        return ["Success", results[0][0]]  # Return 'Success' and the 'userid'
+        return ["Success", username]  # Return 'Success' and the username or user ID
 
 def create_password(userid, username, password, url, name):
     # connect to the database
