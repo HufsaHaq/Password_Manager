@@ -54,13 +54,24 @@ class AdminWindow(Frame):
         # row 3 - Password
         self.password1Label = Label(self, text="Password", font=("Arial Narrow", 16))
         self.password1Label.grid(row=3, column=1, padx=10, pady=10)
-        self.password1TextBox = Entry(self, show="*", width=50)
+        self.password1TextBox = Entry(self, show="*", width=50)  # Initially hides the password
         self.password1TextBox.grid(row=3, column=2, columnspan=4, padx=10, pady=10, sticky="w")
-        self.password1TextBox.bind("<Tab>", self.focus_next_window)
+
+        # row 4 - Show Password Checkbutton
+        self.show_password_var = IntVar()  # Integer variable to track the checkbox state
+        self.show_password_checkbox = Checkbutton(self, text="Show Password", variable=self.show_password_var,command=self.toggle_password)
+        self.show_password_checkbox.grid(row=4, column=2, sticky="w")
 
         # row 4 - Login Button
         self.loginButton = Button(self, text='Login', command=self.login, width=20)
         self.loginButton.grid(row=4, column=1, padx=10, pady=10)
+    
+    def toggle_password(self):
+        """Toggle the password visibility based on the checkbox."""
+        if self.show_password_var.get():  # If checkbox is checked, show the password
+            self.password1TextBox.config(show="")
+        else:  # If unchecked, hide the password
+            self.password1TextBox.config(show="*")
 
     def hash_password(self, password):
         return sha256(password.encode()).hexdigest()
@@ -171,3 +182,10 @@ class AdminWindow(Frame):
 
         # row 3 - Password entry
         self.passwordxLabel
+
+if __name__ == '__main__':
+    root = Tk()
+    root.geometry("600x400")  # Optional: set the size of the window
+    app = AdminWindow(master=root)
+    root.mainloop()  # This starts the GUI loop
+
