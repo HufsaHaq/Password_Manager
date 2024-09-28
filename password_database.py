@@ -2,9 +2,9 @@ import sqlite3
 from hashlib import sha256
 
 
-DB_NAME = 'password_database'
+DB_NAME = 'password_database.db'
 
-def hash_password(self, password):
+def hash_password(password):
     return sha256(password.encode()).hexdigest()  # Convert to bytes and hash it
 
 def delete_database():
@@ -63,16 +63,12 @@ def populatedatabase():
     cursor = db.cursor()
 
     # Hash the passwords
-    hashed_password_bill = sha256("billbill".encode()).hexdigest()
-    hashed_password_ben = sha256("benben".encode()).hexdigest()
+    hashed_password_bill = hash_password("billbill")
+    hashed_password_ben = hash_password("benben")
 
     # populate the users table
-    cursor.execute('''
-    INSERT INTO table_users(sys_username, sys_password)
-    VALUES
-    ('Bill', ?),
-    ('Ben', ?);
-    ''', (hashed_password_bill, hashed_password_ben))
+    cursor.execute('INSERT INTO table_users(sys_username, sys_password) VALUES (?, ?)', ('Bill', hashed_password_bill))
+    cursor.execute('INSERT INTO table_users(sys_username, sys_password) VALUES (?, ?)', ('Ben', hashed_password_ben))
 
     # save the database
     db.commit()
@@ -106,7 +102,7 @@ def userlogin(username, password):
     db = sqlite3.connect(DB_NAME)
     cursor = db.cursor()
 
-    mycommand = 'SELECT * FROM table_users WHERE sys_username = ?'
+    mycommand = 'SELECT sys_password FROM table_users WHERE sys_username = ?'
     cursor.execute(mycommand, (username,))
     results = cursor.fetchall()
 
@@ -176,9 +172,9 @@ def search(userid,username,password,url,name):
     
 if __name__ == '__main__':
     # Ensure the database is created
-    delete_database()
-    create_database()  # Create the tables if they don't exist
-    populatedatabase()  # Populate the tables with initial data
+    #delete_database()
+    #create_database()  # Create the tables if they don't exist
+    #populatedatabase()  # Populate the tables with initial data
 
     # Call the function to display contents of the database
     show_all()
