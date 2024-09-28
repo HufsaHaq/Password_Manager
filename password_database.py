@@ -172,9 +172,10 @@ def search(userid,username,password,url,name):
     
 if __name__ == '__main__':
     # Ensure the database is created
-    delete_database()
-    create_database()  # Create the tables if they don't exist
-    populatedatabase()  # Populate the tables with initial data
+    #delete_database()
+    
+    #create_database()  # Create the tables if they don't exist
+    #populatedatabase()  # Populate the tables with initial data
 
     # Call the function to display contents of the database
     show_all()
