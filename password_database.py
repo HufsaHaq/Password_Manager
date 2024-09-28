@@ -1,4 +1,6 @@
 import sqlite3
+from hashlib import sha256
+
 
 DB_NAME = 'password_database'
 
@@ -54,31 +56,32 @@ def create_database():
         print("Error:", e)
 
 def populatedatabase():
-
     print("Running populatedatabase")
 
     # connect to the database
     db = sqlite3.connect(DB_NAME)
     cursor = db.cursor()
 
-    #populate the users table (this will not be necessary in a fully functioning system where there functionality to add users)
+    # Hash the passwords
+    hashed_password_bill = sha256("billbill".encode()).hexdigest()
+    hashed_password_ben = sha256("benben".encode()).hexdigest()
+
+    # populate the users table
     cursor.execute('''
     INSERT INTO table_users(sys_username, sys_password)
     VALUES
-    ('Bill','billbill'),
-    ('Ben','benben');
-    ''')
+    ('Bill', ?),
+    ('Ben', ?);
+    ''', (hashed_password_bill, hashed_password_ben))
 
-    #save the database
+    # save the database
     db.commit()
-    
-    #dis-connect from the database
+
+    # dis-connect from the database
     db.close()
 
-    #self.csvimport()
     print("Populated the database")
-
-      
+    
 def show_all():
     # connect to the database
     db = sqlite3.connect(DB_NAME)
@@ -173,9 +176,9 @@ def search(userid,username,password,url,name):
     
 if __name__ == '__main__':
     # Ensure the database is created
-    #delete_database()
-    #create_database()  # Create the tables if they don't exist
-    #populatedatabase()  # Populate the tables with initial data
+    delete_database()
+    create_database()  # Create the tables if they don't exist
+    populatedatabase()  # Populate the tables with initial data
 
     # Call the function to display contents of the database
     show_all()
