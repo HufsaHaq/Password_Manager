@@ -1,5 +1,4 @@
 from password_database import *
-from hashing_passwords import *
 import sqlite3
 import os
 import pyperclip  # For copying password to clipboard
@@ -79,8 +78,9 @@ class AdminWindow(Frame):
     def login(self):
         myname = self.usernameTextBox.get()
         mypassword = self.password1TextBox.get()
-        hashed_password = self.hash_password(mypassword)
+        hashed_password = self.hash_password(mypassword)  # Hash the entered password
 
+        # Call the userlogin function to validate the user
         results = userlogin(myname, hashed_password)
 
         if results[0] == "Error":
@@ -156,7 +156,7 @@ class AdminWindow(Frame):
     def new_credentials(self, userid):
         username = self.username1TextBox.get()
         password = self.password2TextBox.get()
-        hashed_password = self.hash_password(password)
+        hashed_password = self.hash_password(password)  # Hash the password before storing it
         url = self.urlTextBox.get()
         name = self.nameTextBox.get()
 

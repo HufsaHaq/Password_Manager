@@ -2,6 +2,9 @@ import sqlite3
 
 DB_NAME = 'password_database'
 
+def hash_password(self, password):
+    return sha256(password.encode()).hexdigest()  # Convert to bytes and hash it
+
 def delete_database():
     # connect to the database
     db = sqlite3.connect(DB_NAME)
@@ -107,9 +110,15 @@ def userlogin(username, password):
     # dis-connect from the database
     db.close()
 
+    # Check if the username exists
     if not results:
         return ["Error", "Username not found"]
-    elif results[0][2] != password:
+
+    # Hash the input password before comparison
+    hashed_password = sha256(password.encode()).hexdigest()
+
+    # Check if the stored hashed password matches the input hashed password
+    if results[0][2] != hashed_password:
         return ["Error", "Password incorrect"]
     else:
         return ["Success", results[0][0]]  # Return 'Success' and the 'userid'
