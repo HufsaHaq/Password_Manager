@@ -26,7 +26,7 @@ class AdminWindow(Frame):
 
     def show_login(self):
         self.clear_window()
-        
+
         # row 1
         self.label = Label(self, text="Login...", font=("Arial Narrow", 24))
         self.label.grid(row=1, column=1, columnspan=4, rowspan=1, padx=10, pady=10, sticky=W)
@@ -58,13 +58,17 @@ class AdminWindow(Frame):
 
         # row 4 - Show Password Checkbutton
         self.show_password_var = IntVar()  # Integer variable to track the checkbox state
-        self.show_password_checkbox = Checkbutton(self, text="Show Password", variable=self.show_password_var,command=self.toggle_password)
+        self.show_password_checkbox = Checkbutton(self, text="Show Password", variable=self.show_password_var, command=self.toggle_password)
         self.show_password_checkbox.grid(row=4, column=2, sticky="w")
 
-        # row 4 - Login Button
+        # row 5 - Login Button
         self.loginButton = Button(self, text='Login', command=self.login, width=20)
         self.loginButton.grid(row=4, column=1, padx=10, pady=10)
-    
+
+        # row 6 - New User Button
+        self.newUserButton = Button(self, text='Create New User', command=self.show_new_user, width=20)
+        self.newUserButton.grid(row=4, column=3, padx=10, pady=10)
+
     def toggle_password(self):
         """Toggle the password visibility based on the checkbox."""
         if self.show_password_var.get():  # If checkbox is checked, show the password
@@ -72,16 +76,16 @@ class AdminWindow(Frame):
         else:  # If unchecked, hide the password
             self.password1TextBox.config(show="*")
 
-    def hash_password(self, password):
-        return sha256(password.encode()).hexdigest()
-
     def login(self):
         myname = self.usernameTextBox.get()
         mypassword = self.password1TextBox.get()
-        hashed_password = self.hash_password(mypassword)  # Hash the entered password
 
         # Call the userlogin function to validate the user
-        results = userlogin(myname, hashed_password)
+        results = userlogin(myname, mypassword)
+
+        if not results:
+            messagebox.showerror("Error", "No results found")
+            return
 
         if results[0] == "Error":
             if results[1] == "Username not found":
@@ -110,6 +114,48 @@ class AdminWindow(Frame):
         # Logout button
         self.logoutButton = Button(self, text='Log out', command=self.show_login, width=20)
         self.logoutButton.grid(row=20, column=1, padx=10, pady=10)
+
+    def show_new_user(self):
+        self.clear_window()
+
+        # row 1
+        self.label = Label(self, text="Create New User...", font=("Arial Narrow", 24))
+        self.label.grid(row=1, column=1, columnspan=4, padx=10, pady=10, sticky=W)
+
+        # row 2 - New Username entry
+        self.newUsernameLabel = Label(self, text="Username", font=("Arial Narrow", 16))
+        self.newUsernameLabel.grid(row=2, column=1, padx=10, pady=10)
+        self.newUsernameTextBox = Entry(self, width=50)
+        self.newUsernameTextBox.grid(row=2, column=2, columnspan=4, padx=10, pady=10, sticky="w")
+        self.newUsernameTextBox.bind("<Tab>", self.focus_next_window)
+
+        # row 3 - New Password entry
+        self.newPasswordLabel = Label(self, text="Password", font=("Arial Narrow", 16))
+        self.newPasswordLabel.grid(row=3, column=1, padx=10, pady=10)
+        self.newPasswordTextBox = Entry(self, show="*", width=50)
+        self.newPasswordTextBox.grid(row=3, column=2, columnspan=4, padx=10, pady=10, sticky="w")
+        self.newPasswordTextBox.bind("<Tab>", self.focus_next_window)
+
+        # row 4 - Create Button
+        self.createUserButton = Button(self, text='Create User', command=self.create_user, width=20)
+        self.createUserButton.grid(row=4, column=1, padx=10, pady=10)
+
+        # Back Button
+        self.backButton = Button(self, text='Back To Login', command=self.show_login, width=20)
+        self.backButton.grid(row=4, column=3, padx=10, pady=10)
+
+    def create_user(self):
+        username = self.newUsernameTextBox.get()
+        password = self.newPasswordTextBox.get()
+        hashed_password = self.hash_password(password)  # Hash the password before storing it
+
+        try:
+            # Assuming a create_user function exists in password_database
+            create_user(username, hashed_password)
+            messagebox.showinfo("Created", "User created successfully")
+            self.show_login()  # Go back to login screen
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to create user: {e}")
 
     def show_new_credentials(self, userid):
         self.clear_window()
@@ -181,11 +227,34 @@ class AdminWindow(Frame):
         self.usernamexTextBox.bind("<Tab>", self.focus_next_window)
 
         # row 3 - Password entry
-        self.passwordxLabel
+        self.passwordxLabel = Label(self, text="Password", font=("Arial Narrow", 16))
+        self.passwordxLabel.grid(row=3, column=1, padx=10, pady=10)
+        self.passwordxTextBox = Entry(self, show="*", width=50)
+        self.passwordxTextBox.grid(row=3, column=2, columnspan=4, padx=10, pady=10, sticky="w")
+        self.passwordxTextBox.bind("<Tab>", self.focus_next_window)
+
+        # row 4 - Search button
+        self.searchButton = Button(self, text='Search', command=lambda: self.search_password(userid), width=20)
+        self.searchButton.grid(row=4, column=1, padx=10, pady=10)
+
+        self.backButton = Button(self, text='Back To Menu', command=lambda: self.show_menu(userid), width=20)
+        self.backButton.grid(row=4, column=4, padx=10, pady=10)
+
+    def search_password(self, userid):
+        username = self.usernamexTextBox.get()
+        password = self.passwordxTextBox.get()
+        hashed_password = self.hash_password(password)  # Hash the password before searching
+        try:
+            results = search_password(userid, username, hashed_password)
+            if results:
+                messagebox.showinfo("Search Result", f"Username: {results[0]}\nPassword: {results[1]}\nURL: {results[2]}\nApp/Website: {results[3]}")
+            else:
+                messagebox.showinfo("Search Result", "No matching credentials found")
+        except Exception as e:
+            messagebox.showerror("Error", f"Search failed: {e}")
 
 if __name__ == '__main__':
     root = Tk()
     root.geometry("600x400")  # Optional: set the size of the window
     app = AdminWindow(master=root)
     root.mainloop()  # This starts the GUI loop
-

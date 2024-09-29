@@ -7,6 +7,8 @@ DB_NAME = 'password_database.db'
 def hash_password(password):
     return sha256(password.encode()).hexdigest()  # Convert to bytes and hash it
 
+##############################################################################################################
+
 def delete_database():
     # connect to the database
     db = sqlite3.connect(DB_NAME)
@@ -96,7 +98,7 @@ def show_all():
     results = cursor.fetchall()
     for i in results:
         print(i)
-
+###################################################################################################################
 def userlogin(username, password):
     # connect to the database
     db = sqlite3.connect(DB_NAME)
@@ -114,7 +116,7 @@ def userlogin(username, password):
         return ["Error", "Username not found"]
 
     # Hash the input password before comparison
-    hashed_password = sha256(password.encode()).hexdigest()
+    hashed_password = hash_password(password)
 
     # Compare the stored password (at index 0) with the hashed input password
     if results[0][0] != hashed_password:
@@ -169,7 +171,48 @@ def search(userid,username,password,url,name):
     
     #dis-connect from the database
     db.close()
+
+def search_password(userid, username, password):
+    db = sqlite3.connect(DB_NAME)
+    cursor = db.cursor()
+
+    query = "SELECT username, password, url, app_name FROM accounts WHERE 1=1"
+    query_params = []
+
+    if userid and userid != '*':
+        query += " AND userID = ?"
+        query_params.append(userid)
+    if username and username != '*':
+        query += " AND username = ?"
+        query_params.append(username)
+    if password and password != '*':
+        query += " AND password = ?"
+        query_params.append(password)
+
+    cursor.execute(query, query_params)
+    results = cursor.fetchall()
     
+    db.close()
+
+    # Return first matching result, or None
+    if results:
+        return results[0]
+    return None
+
+
+def create_user(username, hashed_password):
+    db = sqlite3.connect(DB_NAME)
+    cursor = db.cursor()
+
+    try:
+        cursor.execute('INSERT INTO table_users(sys_username, sys_password) VALUES (?, ?)', (username, hashed_password))
+        db.commit()
+    except sqlite3.IntegrityError as e:
+        print("Error creating user:", e)
+        raise e
+    finally:
+        db.close()
+
 if __name__ == '__main__':
     # Ensure the database is created
     #delete_database()
