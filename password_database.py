@@ -104,7 +104,7 @@ def userlogin(username, password):
     db = sqlite3.connect(DB_NAME)
     cursor = db.cursor()
 
-    mycommand = 'SELECT sys_password FROM table_users WHERE sys_username = ?'
+    mycommand = 'SELECT userid, sys_password FROM table_users WHERE sys_username = ?'
     cursor.execute(mycommand, (username,))
     results = cursor.fetchall()
 
@@ -119,10 +119,10 @@ def userlogin(username, password):
     hashed_password = hash_password(password)
 
     # Compare the stored password (at index 0) with the hashed input password
-    if results[0][0] != hashed_password:
+    if results[0][1] != hashed_password:
         return ["Error", "Password incorrect"]
     else:
-        return ["Success", username]  # Return 'Success' and the username or user ID
+        return ["Success", username , results[0][0]]  # Return 'Success' and the username or user ID
 
 def create_password(userid, username, password, url, name):
     # connect to the database
@@ -139,65 +139,28 @@ def create_password(userid, username, password, url, name):
     db.close()
 
     
-def search(userid,username,password,url,name):
-    # connect to the database
-    db = sqlite3.connect(DB_NAME)
-    cursor = db.cursor()
+def search(userid, username, name, url):
+    with sqlite3.connect(DB_NAME) as db:
+        cursor = db.cursor()
+        query = "SELECT * FROM accounts WHERE userID = ?"
+        parameters = [userid]
 
-    query = "SELECT * FROM accounts WHERE 1 = 1 "
+        if username:
+            query += " AND username = ?"
+            parameters.append(username)
 
-    query_params = []
+        if name:
+            query += " AND app_name = ?"  
+            parameters.append(name)
 
-    # Modify the conditions to exclude empty strings
-    if userid and userid != '*':
-        query += " AND userid = ?"
-        query_params.append(userid)
-    if username and username != '*':
-        query += " AND username = ?"
-        query_params.append(username)
-    if password and password != '*':
-        query += " AND password = ?"
-        query_params.append(password)
-    if url and url != '*':
-        query += " AND url = ?"
-        query_params.append(url)
-    if name and name != '*':
-        query += " AND app_name = ?"
-        query_params.append(name)
+        if url:
+            query += " AND url = ?"
+            parameters.append(url)
 
-       
-    cursor.execute(query, query_params)
-    results = cursor.fetchall()
-    
-    #dis-connect from the database
-    db.close()
+        cursor.execute(query, parameters)
+        results = cursor.fetchall()
+        return results if results else None
 
-def search_password(userid, username, password):
-    db = sqlite3.connect(DB_NAME)
-    cursor = db.cursor()
-
-    query = "SELECT username, password, url, app_name FROM accounts WHERE 1=1"
-    query_params = []
-
-    if userid and userid != '*':
-        query += " AND userID = ?"
-        query_params.append(userid)
-    if username and username != '*':
-        query += " AND username = ?"
-        query_params.append(username)
-    if password and password != '*':
-        query += " AND password = ?"
-        query_params.append(password)
-
-    cursor.execute(query, query_params)
-    results = cursor.fetchall()
-    
-    db.close()
-
-    # Return first matching result, or None
-    if results:
-        return results[0]
-    return None
 
 
 def create_user(username, hashed_password):
