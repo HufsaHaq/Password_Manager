@@ -43,7 +43,7 @@ I built this project as a **Password Manager** using Python, with **Tkinter** fo
 
 3. Run the application:
     ```bash
-    python password_manager.py
+    python manager_tkinter.py
     ```
 
 ## Usage
