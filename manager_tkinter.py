@@ -2,9 +2,9 @@ from password_database import *
 import sqlite3
 import os
 import pyperclip  # For copying password to clipboard
+import tkinter as tk
 from tkinter import *
-from tkinter import messagebox
-from hashlib import sha256  # For hashing passwords
+from tkinter import messagebox, Toplevel, ttk
 
 class AdminWindow(Frame):
 
@@ -154,7 +154,7 @@ class AdminWindow(Frame):
     def create_user(self):
         username = self.newUsernameTextBox.get()
         password = self.newPasswordTextBox.get()
-        hashed_password = self.hash_password(password)  # Hash the password before storing it
+        hashed_password = hash_password(password)  # hash the password before storing it
 
         try:
             # Assuming a create_user function exists in password_database
@@ -211,14 +211,13 @@ class AdminWindow(Frame):
     def new_credentials(self, userid):
         username = self.username1TextBox.get()
         password = self.password2TextBox.get()
-        hashed_password = hash_password(password)  # Hash the password before storing it
         url = self.urlTextBox.get()
         name = self.nameTextBox.get()
 
         try:
             # Ensure userid is an integer
             userid = int(userid)  
-            create_password(userid, username, hashed_password, url, name)
+            create_credential(userid, username, password, url, name)
             messagebox.showinfo("Created", "Password created and stored")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to create credentials: {e}")
@@ -269,13 +268,67 @@ class AdminWindow(Frame):
             # Call the search function with username, name, and url, allowing them to be None
             results = search(userid, username, name, url)
 
+            # Create a new window for displaying the results
             if results:
-                messagebox.showinfo("Search Result", f"Username: {results[0]}\nPassword: {results[1]}\nURL: {results[2]}\nApp/Website: {results[3]}")
+                results_window = Toplevel(self)
+                results_window.title("Search Results")
+
+                # Create a Treeview to display results in a table format
+                tree = ttk.Treeview(results_window, columns=("Username", "Password", "URL", "App/Website"), show='headings')
+                tree.heading("Username", text="Username")
+                tree.heading("Password", text="Password")
+                tree.heading("URL", text="URL")
+                tree.heading("App/Website", text="App/Website")
+                tree.pack(fill=tk.BOTH, expand=True)
+
+                # Add results to the Treeview
+                for row in results:
+                    tree.insert("", "end", values=(row[1], row[2], row[3], row[4]))
+
+                copy_username_button = tk.Button(results_window, text="Copy Username", command=lambda: self.copy_to_clipboard(tree.selection(), "username", tree))
+                copy_username_button.pack(pady=5)
+
+                copy_password_button = tk.Button(results_window, text="Copy Password", command=lambda: self.copy_to_clipboard(tree.selection(), "password", tree))
+                copy_password_button.pack(pady=5)
+
+                # Add a delete button
+                delete_button = tk.Button(results_window, text="Delete Credential", command=lambda: self.delete_selected(tree, userid))
+                delete_button.pack(pady=10)
+
+                results_window.mainloop()
             else:
                 messagebox.showinfo("Search Result", "No matching credentials found")
         except Exception as e:
             messagebox.showerror("Error", f"Search failed: {e}")
 
+    def copy_to_clipboard(self, selected_item, copy_type, tree):
+        if selected_item:
+            # Get the selected item's values
+            username = tree.item(selected_item, 'values')[0]  # Get the username from the selected item
+            password = tree.item(selected_item, 'values')[1]  # Get the password from the selected item
+
+            if copy_type == "username":
+                pyperclip.copy(username)  # Copy username to clipboard
+                messagebox.showinfo("Copied", f"Copied username: {username}")
+            elif copy_type == "password":
+                pyperclip.copy(password)  # Copy password to clipboard
+                messagebox.showinfo("Copied", f"Copied password: {password}")
+        else:
+            messagebox.showwarning("Select Credential", "Please select a credential to copy.")
+
+    def delete_selected(self, tree, userid):
+        selected_item = tree.selection()
+        if selected_item:
+            # Assuming the first column (index 0) has the username and the fourth column (index 3) has the app name
+            username = tree.item(selected_item, 'values')[0]
+            app_name = tree.item(selected_item, 'values')[3]
+            
+            delete_confirmation = messagebox.askyesno("Delete Confirmation", f"Are you sure you want to delete the credential for '{username}' in '{app_name}'?")
+            if delete_confirmation:
+                delete_credential(username, app_name)  # Pass both username and app_name
+                tree.delete(selected_item)
+        else:
+            messagebox.showwarning("Select Credential", "Please select a credential to delete.")
 
 ###########################MAIN###########################################################################################################
 if __name__ == '__main__':

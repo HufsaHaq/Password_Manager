@@ -1,11 +1,10 @@
 import sqlite3
 from hashlib import sha256
 
-
-DB_NAME = 'password_database.db'
-
 def hash_password(password):
     return sha256(password.encode()).hexdigest()  # Convert to bytes and hash it
+
+DB_NAME = 'password_database.db'
 
 ##############################################################################################################
 
@@ -40,7 +39,7 @@ def create_database():
             app_name TEXT NOT NULL
         );''')
 
-        # Create the table_users table (fixed the issue with duplicate PRIMARY KEY)
+        # Create the table_users table 
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS table_users(
             userID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,7 +63,7 @@ def populatedatabase():
     db = sqlite3.connect(DB_NAME)
     cursor = db.cursor()
 
-    # Hash the passwords
+    # hash the passwords
     hashed_password_bill = hash_password("billbill")
     hashed_password_ben = hash_password("benben")
 
@@ -115,7 +114,7 @@ def userlogin(username, password):
     if not results:
         return ["Error", "Username not found"]
 
-    # Hash the input password before comparison
+    # hash the input password before comparison
     hashed_password = hash_password(password)
 
     # Compare the stored password (at index 0) with the hashed input password
@@ -124,7 +123,7 @@ def userlogin(username, password):
     else:
         return ["Success", username , results[0][0]]  # Return 'Success' and the username or user ID
 
-def create_password(userid, username, password, url, name):
+def create_credential(userid, username, password, url, name):
     # connect to the database
     db = sqlite3.connect(DB_NAME)
     cursor = db.cursor()
@@ -140,26 +139,28 @@ def create_password(userid, username, password, url, name):
 
     
 def search(userid, username, name, url):
+    query = "SELECT * FROM accounts WHERE userID = ?"
+    parameters = [userid]
+
+    # Build query conditions based on provided parameters
+    if username:
+        query += " AND username = ?"
+        parameters.append(username)
+
+    if name:
+        query += " AND app_name = ?"
+        parameters.append(name)
+
+    if url:
+        query += " AND url = ?"
+        parameters.append(url)
+
     with sqlite3.connect(DB_NAME) as db:
         cursor = db.cursor()
-        query = "SELECT * FROM accounts WHERE userID = ?"
-        parameters = [userid]
-
-        if username:
-            query += " AND username = ?"
-            parameters.append(username)
-
-        if name:
-            query += " AND app_name = ?"  
-            parameters.append(name)
-
-        if url:
-            query += " AND url = ?"
-            parameters.append(url)
-
         cursor.execute(query, parameters)
         results = cursor.fetchall()
-        return results if results else None
+        
+    return results  # Returns a list of tuples
 
 
 
@@ -175,6 +176,29 @@ def create_user(username, hashed_password):
         raise e
     finally:
         db.close()
+
+def delete_credential(username, app_name):
+    try:
+        # Connect to the database
+        db = sqlite3.connect(DB_NAME)
+        cursor = db.cursor()
+
+        # Prepare and execute the delete command
+        cursor.execute("DELETE FROM accounts WHERE username = ? AND app_name = ?", (username, app_name))
+        
+        # Check if a row was deleted
+        if cursor.rowcount == 0:
+            print("No matching credential found to delete.")
+        else:
+            print(f"Deleted credential for username: {username} and app: {app_name}")
+
+        # Save the changes
+        db.commit()
+    except Exception as e:
+        print("Error deleting credential:", e)
+    # Ensure the database connection is closed
+    db.close()
+
 
 if __name__ == '__main__':
     # Ensure the database is created
